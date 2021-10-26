@@ -60,12 +60,13 @@ static inline __m512i fast_dbl_mul_mod_q2_m512(const mul_op_m512_t w1,
                                                const __m512i       neg_q)
 {
   const __m512i zero = SET1(0);
-  const __m512i Q    = MADDHI(zero, w1.con, t1) + MADDHI(zero, w2.con, t2);
+  const __m512i TMP1 = MADDHI(zero, w1.con, t1);
+  const __m512i Q    = MADDHI(TMP1, w2.con, t2);
 
-  const __m512i TMP1 = MADDLO(zero, w1.op, t1);
-  const __m512i TMP2 = MADDLO(TMP1, w2.op, t2);
-  const __m512i TMP3 = MADDLO(TMP2, Q, neg_q);
-  return TMP3 & AVX512_IFMA_WORD_SIZE_MASK;
+  const __m512i TMP2 = MADDLO(zero, w1.op, t1);
+  const __m512i TMP3 = MADDLO(TMP2, w2.op, t2);
+  const __m512i TMP4 = MADDLO(TMP3, Q, neg_q);
+  return TMP4 & AVX512_IFMA_WORD_SIZE_MASK;
 }
 
 static inline void fwd_radix4_butterfly_m512(__m512i *           X,
