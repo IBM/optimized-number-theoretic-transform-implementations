@@ -4,7 +4,7 @@
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(CLANG 1)
 endif()
- 
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ggdb -O3 -fPIC")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -Wall -Wextra -Werror -Wpedantic")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused -Wcomment -Wchar-subscripts -Wuninitialized -Wshadow")
@@ -12,6 +12,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wwrite-strings -Wformat-security -Wcast-qua
 
 if(S390X)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=z14 -mvx -mzvector")
+    if (NOT CLANG)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mbranch-cost=3")
+    endif()
 elseif(X86_64)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mno-red-zone")
 else()
