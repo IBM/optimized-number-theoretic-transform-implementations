@@ -13,7 +13,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wwrite-strings -Wformat-security -Wcast-qua
 if(S390X)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=z14 -mvx -mzvector")
     if (NOT CLANG)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mbranch-cost=3")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mbranch-cost=3 -ftree-loop-vectorize -ftree-vectorize")
     endif()
 elseif(X86_64)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mno-red-zone")
