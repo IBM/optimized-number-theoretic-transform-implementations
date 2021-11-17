@@ -10,6 +10,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -Wall -Wextra -Werror -W
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused -Wcomment -Wchar-subscripts -Wuninitialized -Wshadow")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wwrite-strings -Wformat-security -Wcast-qual -Wunused-result")
 
+# Remove any occurrences of parameter -O from CMAKE_C_FLAGS_<BuildType>
+string(TOUPPER "CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}" varname)
+string(REGEX REPLACE "-O[0-3]?" "" ${varname} "${${varname}}")
+unset(varname)
+
 if(S390X)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=z14 -mvx -mzvector")
     if (NOT CLANG)
