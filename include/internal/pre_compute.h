@@ -211,6 +211,9 @@ static inline void expand_w_r4_avx512_ifma(uint64_t       w_expanded[],
     w_expanded[new_w_idx++] = q - ((w[w_idx + 1] * w[k + 3]) % q);
   }
 
+  // Align on an 8-qw boundary
+  new_w_idx = ((new_w_idx >> 3) << 3) + 8;
+
   // FWD1
   for(w_idx = (N >> 2); w_idx < (N >> 1); w_idx += 8) {
     // W1
@@ -272,6 +275,9 @@ static inline void expand_w_r4r2_avx512_ifma(uint64_t       w_expanded[],
     }
     w_idx = 4 * m;
   }
+
+  // Align on an 8-qw boundary
+  new_w_idx = ((new_w_idx >> 3) << 3) + 8;
 
   if(HAS_AN_EVEN_POWER(N)) {
     // FWD8 in radix2

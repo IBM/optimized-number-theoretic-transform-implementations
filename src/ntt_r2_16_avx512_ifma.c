@@ -17,9 +17,9 @@ static inline void fwd16_r2(uint64_t *      a,
     const uint64_t      w_idx3 = w_idx2 + (8 * m);
     const uint64_t      w_idx4 = w_idx2 + (16 * m);
     const mul_op_m512_t w1     = {SET1(w[i]), SET1(w_con[i])};
-    const mul_op_m512_t w2     = {LOAD(&w[w_idx2]), LOAD(&w_con[w_idx2])};
-    const mul_op_m512_t w3     = {LOAD(&w[w_idx3]), LOAD(&w_con[w_idx3])};
-    const mul_op_m512_t w4     = {LOAD(&w[w_idx4]), LOAD(&w_con[w_idx4])};
+    const mul_op_m512_t w2     = {LOADA(&w[w_idx2]), LOADA(&w_con[w_idx2])};
+    const mul_op_m512_t w3     = {LOADA(&w[w_idx3]), LOADA(&w_con[w_idx3])};
+    const mul_op_m512_t w4     = {LOADA(&w[w_idx4]), LOADA(&w_con[w_idx4])};
 
     __m512i X = LOAD(&a[16 * i]);
     __m512i Y = LOAD(&a[16 * i + 8]);
