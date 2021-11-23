@@ -16,11 +16,19 @@ int main(UNUSED int argc, UNUSED char *argv[])
     return SUCCESS;
   }
 
+  printf("\n\nTesting forward NTT with unaligned inputs\n\n");
   report_test_fwd_perf_headers();
   for(size_t i = 0; i < NUM_OF_TEST_CASES; i++) {
-    test_fwd_perf(&tests[i]);
+    test_unaligned_fwd_perf(&tests[i]);
   }
 
+  printf("Testing forward NTT with aligned inputs\n\n");
+  report_test_fwd_perf_headers();
+  for(size_t i = 0; i < NUM_OF_TEST_CASES; i++) {
+    test_aligned_fwd_perf(&tests[i]);
+  }
+
+  printf("Testing inverse NTT with unaligned inputs\n\n");
   report_test_inv_perf_headers();
   for(size_t i = 0; i < NUM_OF_TEST_CASES; i++) {
     test_inv_perf(&tests[i]);

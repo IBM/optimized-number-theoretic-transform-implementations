@@ -90,3 +90,5 @@
 #  define LOOP_UNROLL_4
 #  define LOOP_UNROLL_8
 #endif
+
+#define ALIGN(n) __attribute__((aligned(n)))

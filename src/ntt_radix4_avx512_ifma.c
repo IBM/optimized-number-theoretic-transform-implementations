@@ -10,17 +10,17 @@ static inline void collect_roots_fwd1(mul_op_m512_t  w1[5],
                                       const uint64_t w_con[],
                                       size_t *       idx)
 {
-  w1[0].op = LOAD(&w[*idx]);
-  w1[1].op = LOAD(&w[*idx + 8]);
-  w1[2].op = LOAD(&w[*idx + 16]);
-  w1[3].op = LOAD(&w[*idx + 24]);
-  w1[4].op = LOAD(&w[*idx + 32]);
+  w1[0].op = LOADA(&w[*idx]);
+  w1[1].op = LOADA(&w[*idx + 8]);
+  w1[2].op = LOADA(&w[*idx + 16]);
+  w1[3].op = LOADA(&w[*idx + 24]);
+  w1[4].op = LOADA(&w[*idx + 32]);
 
-  w1[0].con = LOAD(&w_con[*idx]);
-  w1[1].con = LOAD(&w_con[*idx + 8]);
-  w1[2].con = LOAD(&w_con[*idx + 16]);
-  w1[3].con = LOAD(&w_con[*idx + 24]);
-  w1[4].con = LOAD(&w_con[*idx + 32]);
+  w1[0].con = LOADA(&w_con[*idx]);
+  w1[1].con = LOADA(&w_con[*idx + 8]);
+  w1[2].con = LOADA(&w_con[*idx + 16]);
+  w1[3].con = LOADA(&w_con[*idx + 24]);
+  w1[4].con = LOADA(&w_con[*idx + 32]);
 
   *idx += 5 * 8;
 }
@@ -179,6 +179,9 @@ void fwd_ntt_radix4_avx512_ifma_lazy(uint64_t       a[],
         fwd4(&a[4 * 4 * j], roots, q);
       }
     } else {
+      // Align on an 8-qw boundary
+      idx = ((idx >> 3) << 3) + 8;
+
       LOOP_UNROLL_4
       for(size_t j = 0; j < m; j += 8) {
         collect_roots_fwd1(roots, w, w_con, &idx);

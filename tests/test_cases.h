@@ -10,6 +10,55 @@
 
 EXTERNC_BEGIN
 
+/*
+ * The pointers in this file are 64 bytes aligned.
+ */
+typedef struct aligned64_ptr_s {
+  void *    base;
+  uint64_t *ptr;
+} aligned64_ptr_t;
+
+typedef struct unaligned64_ptr_s {
+  void *    base;
+  uint64_t *ptr;
+} unaligned64_ptr_t;
+
+static inline int allocate_aligned_array(aligned64_ptr_t *aptr, size_t qw_num)
+{
+  size_t size_to_allocate = qw_num * sizeof(uint64_t) + 64;
+  if(NULL == ((aptr->base) = malloc(size_to_allocate))) {
+    printf("Allocation error");
+    return ERROR;
+  }
+  aptr->ptr = (uint64_t *)(((uint64_t)aptr->base & (~0x3fULL)) + 64);
+  return SUCCESS;
+}
+
+static inline int allocate_unaligned_array(unaligned64_ptr_t *aptr, size_t qw_num)
+{
+  size_t size_to_allocate = qw_num * sizeof(uint64_t) + 64 + 8;
+  if(NULL == ((aptr->base) = malloc(size_to_allocate))) {
+    printf("Allocation error");
+    return ERROR;
+  }
+  aptr->ptr = (uint64_t *)(((uint64_t)aptr->base & (~0x3fULL)) + 64 + 8);
+  return SUCCESS;
+}
+
+static inline void free_aligned_array(aligned64_ptr_t *aptr)
+{
+  free(aptr->base);
+  aptr->base = NULL;
+  aptr->ptr  = NULL;
+}
+
+static inline void free_unaligned_array(unaligned64_ptr_t *aptr)
+{
+  free(aptr->base);
+  aptr->base = NULL;
+  aptr->ptr  = NULL;
+}
+
 typedef struct test_case_s {
   // These parameters are predefined
   uint64_t m;
@@ -19,44 +68,44 @@ typedef struct test_case_s {
   mul_op_t n_inv; // 2^(-m) mod q
 
   // These parameters are dinamically computed based on the above values.
-  uint64_t  n;
-  uint64_t  qneg;
-  uint64_t  q2;
-  uint64_t  q4;
-  uint64_t *w_powers;
-  uint64_t *w_powers_con;
-  uint64_t *w_inv_powers;
-  uint64_t *w_inv_powers_con;
+  uint64_t        n;
+  uint64_t        qneg;
+  uint64_t        q2;
+  uint64_t        q4;
+  aligned64_ptr_t w_powers;
+  aligned64_ptr_t w_powers_con;
+  aligned64_ptr_t w_inv_powers;
+  aligned64_ptr_t w_inv_powers_con;
 
   // For radix-4 tests
-  uint64_t *w_powers_r4;
-  uint64_t *w_powers_con_r4;
-  uint64_t *w_inv_powers_r4;
-  uint64_t *w_inv_powers_con_r4;
+  aligned64_ptr_t w_powers_r4;
+  aligned64_ptr_t w_powers_con_r4;
+  aligned64_ptr_t w_inv_powers_r4;
+  aligned64_ptr_t w_inv_powers_con_r4;
 
 #ifdef S390X
   // For radix-4 tests with VMSL (56-bits instead of 64-bits)
-  uint64_t *w_powers_con_r4_vmsl;
-  uint64_t *w_inv_powers_con_r4_vmsl;
-  mul_op_t  n_inv_vmsl;
+  aligned64_ptr_t w_powers_con_r4_vmsl;
+  aligned64_ptr_t w_inv_powers_con_r4_vmsl;
+  mul_op_t        n_inv_vmsl;
 #endif
 
 #ifdef AVX512_IFMA_SUPPORT
   // For radix-2 tests with AVX512-IFMA on X86-64 bit platofrms (52-bits)
-  uint64_t *w_powers_hexl;
-  uint64_t *w_powers_con_hexl;
+  aligned64_ptr_t w_powers_hexl;
+  aligned64_ptr_t w_powers_con_hexl;
 
-  uint64_t *w_powers_r4_avx512_ifma;
-  uint64_t *w_powers_con_r4_avx512_ifma;
+  aligned64_ptr_t w_powers_r4_avx512_ifma;
+  aligned64_ptr_t w_powers_con_r4_avx512_ifma;
 
-  uint64_t *w_powers_r4_avx512_ifma_unordered;
-  uint64_t *w_powers_con_r4_avx512_ifma_unordered;
+  aligned64_ptr_t w_powers_r4_avx512_ifma_unordered;
+  aligned64_ptr_t w_powers_con_r4_avx512_ifma_unordered;
 
-  uint64_t *w_powers_r4r2_avx512_ifma;
-  uint64_t *w_powers_con_r4r2_avx512_ifma;
+  aligned64_ptr_t w_powers_r4r2_avx512_ifma;
+  aligned64_ptr_t w_powers_con_r4r2_avx512_ifma;
 
-  uint64_t *w_powers_r2_16_avx512_ifma;
-  uint64_t *w_powers_con_r2_16_avx512_ifma;
+  aligned64_ptr_t w_powers_r2_16_avx512_ifma;
+  aligned64_ptr_t w_powers_con_r2_16_avx512_ifma;
 #endif
 
 } test_case_t;
@@ -133,25 +182,32 @@ static test_case_t tests[] = {
    .w_inv    = 153477749218715,   // NOLINT
    .n_inv.op = 2251662376566673}, // NOLINT
   {.m        = 15,
+   .q        = 0x10001, // NOLINT
+   .w        = 3,
+   .w_inv    = 21846,  // NOLINT
+   .n_inv.op = 65535}, // NOLINT
+  {.m        = 15,
    .q        = 0x80000001c0001, // NOLINT
    .w        = 82138512871,
    .w_inv    = 535648572761016,   // NOLINT
    .n_inv.op = 2251731096043465}, // NOLINT
   {.m        = 16,                // NOLINT
-   .q        = 0x7fffffffe0001,   // NOLINT
+   .q        = 0x7ffe0001,        // NOLINT
+   .w        = 1859,
+   .w_inv    = 1579037640, // NOLINT
+   .n_inv.op = 2147319811},
+  {.m        = 16,              // NOLINT
+   .q        = 0x7fffffffe0001, // NOLINT
    .w        = 29454831443,
-   .w_inv    = 520731633805630,    // NOLINT
-   .n_inv.op = 2251765453815811}}; // NOLINT
+   .w_inv    = 520731633805630,   // NOLINT
+   .n_inv.op = 2251765453815811}, // NOLINT
+  {.m        = 17,                // NOLINT
+   .q        = 0x100180001,       // NOLINT
+   .w        = 79247,
+   .w_inv    = 4203069932,   // NOLINT
+   .n_inv.op = 4296507381}}; // NOLINT
 
 #define NUM_OF_TEST_CASES (sizeof(tests) / sizeof(test_case_t))
-
-#define _ALLOCATE_U64_ARRAY(ptr, size)                                    \
-  do {                                                                    \
-    if(NULL == ((ptr) = (uint64_t *)malloc((size) * sizeof(uint64_t)))) { \
-      printf("Allocation error");                                         \
-      return 0;                                                           \
-    }                                                                     \
-  } while(0)
 
 static inline int _init_test(test_case_t *t)
 {
@@ -168,84 +224,88 @@ static inline int _init_test(test_case_t *t)
   t->q4        = 4 * q;
 
   // Prepare radix-2 w-powers
-  _ALLOCATE_U64_ARRAY(t->w_powers, n);
-  calc_w(t->w_powers, w, n, q, m);
+  allocate_aligned_array(&t->w_powers, n);
+  calc_w(t->w_powers.ptr, w, n, q, m);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_con, n);
-  calc_w_con(t->w_powers_con, t->w_powers, n, q, WORD_SIZE);
+  allocate_aligned_array(&t->w_powers_con, n);
+  calc_w_con(t->w_powers_con.ptr, t->w_powers.ptr, n, q, WORD_SIZE);
 
-  _ALLOCATE_U64_ARRAY(t->w_inv_powers, n);
-  calc_w_inv(t->w_inv_powers, w_inv, n, q, m);
+  allocate_aligned_array(&t->w_inv_powers, n);
+  calc_w_inv(t->w_inv_powers.ptr, w_inv, n, q, m);
 
-  _ALLOCATE_U64_ARRAY(t->w_inv_powers_con, n);
-  calc_w_con(t->w_inv_powers_con, t->w_inv_powers, n, q, WORD_SIZE);
+  allocate_aligned_array(&t->w_inv_powers_con, n);
+  calc_w_con(t->w_inv_powers_con.ptr, t->w_inv_powers.ptr, n, q, WORD_SIZE);
 
   // Expand the list of powers to support the radix-4 case.
-  _ALLOCATE_U64_ARRAY(t->w_powers_r4, 2 * n);
-  expand_w(t->w_powers_r4, t->w_powers, n, q);
+  allocate_aligned_array(&t->w_powers_r4, 2 * n);
+  expand_w(t->w_powers_r4.ptr, t->w_powers.ptr, n, q);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_con_r4, 2 * n);
-  calc_w_con(t->w_powers_con_r4, t->w_powers_r4, 2 * n, q, WORD_SIZE);
+  allocate_aligned_array(&t->w_powers_con_r4, 2 * n);
+  calc_w_con(t->w_powers_con_r4.ptr, t->w_powers_r4.ptr, 2 * n, q, WORD_SIZE);
 
-  _ALLOCATE_U64_ARRAY(t->w_inv_powers_r4, 2 * n);
-  expand_w(t->w_inv_powers_r4, t->w_inv_powers, n, q);
+  allocate_aligned_array(&t->w_inv_powers_r4, 2 * n);
+  expand_w(t->w_inv_powers_r4.ptr, t->w_inv_powers.ptr, n, q);
 
-  _ALLOCATE_U64_ARRAY(t->w_inv_powers_con_r4, 2 * n);
-  calc_w_con(t->w_inv_powers_con_r4, t->w_inv_powers_r4, 2 * n, q, WORD_SIZE);
+  allocate_aligned_array(&t->w_inv_powers_con_r4, 2 * n);
+  calc_w_con(t->w_inv_powers_con_r4.ptr, t->w_inv_powers_r4.ptr, 2 * n, q,
+             WORD_SIZE);
 
 #ifdef S390X
-  t->n_inv_vmsl.con = calc_ninv_con(t->n_inv.op, q, VMSL_WORD_SIZE);
+  t->n_inv_vmsl.con = calc_ninv_con(&t->n_inv.op, q, VMSL_WORD_SIZE);
   t->n_inv_vmsl.op  = t->n_inv.op;
 
   // for radix-4 vmsl
-  _ALLOCATE_U64_ARRAY(t->w_powers_con_r4_vmsl, 2 * n);
-  calc_w_con(t->w_powers_con_r4_vmsl, t->w_powers_r4, 2 * t->n, t->q,
+  allocate_aligned_array(&t->w_powers_con_r4_vmsl, 2 * n);
+  calc_w_con(t->w_powers_con_r4_vmsl.ptr, t->w_powers_r4.ptr, 2 * t->n, t->q,
              VMSL_WORD_SIZE);
 
-  _ALLOCATE_U64_ARRAY(t->w_inv_powers_con_r4_vmsl, 2 * n);
-  calc_w_con(t->w_inv_powers_con_r4_vmsl, t->w_inv_powers_r4, 2 * t->n, t->q,
-             VMSL_WORD_SIZE);
+  allocate_aligned_array(&t->w_inv_powers_con_r4_vmsl, 2 * n);
+  calc_w_con(t->w_inv_powers_con_r4_vmsl.ptr, t->w_inv_powers_r4.ptr, 2 * t->n,
+             t->q, VMSL_WORD_SIZE);
 #endif
 
 #ifdef AVX512_IFMA_SUPPORT
   // For avx512-ifma
   // In fact, we only need to allocate 1.25n but we allocate 2n just in case.
-  _ALLOCATE_U64_ARRAY(t->w_powers_hexl, 2 * n);
-  expand_w_hexl(t->w_powers_hexl, t->w_powers, n);
+  allocate_aligned_array(&t->w_powers_hexl, 2 * n);
+  expand_w_hexl(t->w_powers_hexl.ptr, t->w_powers.ptr, n);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_con_hexl, n * 2);
-  calc_w_con(t->w_powers_con_hexl, t->w_powers_hexl, n * 2, q,
+  allocate_aligned_array(&t->w_powers_con_hexl, n * 2);
+  calc_w_con(t->w_powers_con_hexl.ptr, t->w_powers_hexl.ptr, n * 2, q,
              AVX512_IFMA_WORD_SIZE);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_r4_avx512_ifma, n * 5);
-  expand_w_r4_avx512_ifma(t->w_powers_r4_avx512_ifma, t->w_powers, n, q, 0);
+  allocate_aligned_array(&t->w_powers_r4_avx512_ifma, n * 5);
+  expand_w_r4_avx512_ifma(t->w_powers_r4_avx512_ifma.ptr, t->w_powers.ptr, n, q,
+                          0);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_con_r4_avx512_ifma, n * 5);
-  calc_w_con(t->w_powers_con_r4_avx512_ifma, t->w_powers_r4_avx512_ifma, 5 * n, q,
+  allocate_aligned_array(&t->w_powers_con_r4_avx512_ifma, n * 5);
+  calc_w_con(t->w_powers_con_r4_avx512_ifma.ptr, t->w_powers_r4_avx512_ifma.ptr,
+             5 * n, q, AVX512_IFMA_WORD_SIZE);
+
+  allocate_aligned_array(&t->w_powers_r4_avx512_ifma_unordered, n * 5);
+  expand_w_r4_avx512_ifma(t->w_powers_r4_avx512_ifma_unordered.ptr,
+                          t->w_powers.ptr, n, q, 1);
+
+  allocate_aligned_array(&t->w_powers_con_r4_avx512_ifma_unordered, n * 5);
+  calc_w_con(t->w_powers_con_r4_avx512_ifma_unordered.ptr,
+             t->w_powers_r4_avx512_ifma_unordered.ptr, n * 5, q,
              AVX512_IFMA_WORD_SIZE);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_r4_avx512_ifma_unordered, n * 5);
-  expand_w_r4_avx512_ifma(t->w_powers_r4_avx512_ifma_unordered, t->w_powers, n, q,
-                          1);
+  allocate_aligned_array(&t->w_powers_r4r2_avx512_ifma, n * 5);
+  expand_w_r4r2_avx512_ifma(t->w_powers_r4r2_avx512_ifma.ptr, t->w_powers.ptr, n,
+                            q);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_con_r4_avx512_ifma_unordered, n * 5);
-  calc_w_con(t->w_powers_con_r4_avx512_ifma_unordered,
-             t->w_powers_r4_avx512_ifma_unordered, n * 5, q,
-             AVX512_IFMA_WORD_SIZE);
+  allocate_aligned_array(&t->w_powers_con_r4r2_avx512_ifma, n * 5);
+  calc_w_con(t->w_powers_con_r4r2_avx512_ifma.ptr,
+             t->w_powers_r4r2_avx512_ifma.ptr, n * 5, q, AVX512_IFMA_WORD_SIZE);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_r4r2_avx512_ifma, n * 5);
-  expand_w_r4r2_avx512_ifma(t->w_powers_r4r2_avx512_ifma, t->w_powers, n, q);
+  allocate_aligned_array(&t->w_powers_r2_16_avx512_ifma, n * 3);
+  expand_w_r2_16_avx512_ifma(t->w_powers_r2_16_avx512_ifma.ptr, t->w_powers.ptr,
+                             n);
 
-  _ALLOCATE_U64_ARRAY(t->w_powers_con_r4r2_avx512_ifma, n * 5);
-  calc_w_con(t->w_powers_con_r4r2_avx512_ifma, t->w_powers_r4r2_avx512_ifma,
-             n * 5, q, AVX512_IFMA_WORD_SIZE);
-
-  _ALLOCATE_U64_ARRAY(t->w_powers_r2_16_avx512_ifma, n * 3);
-  expand_w_r2_16_avx512_ifma(t->w_powers_r2_16_avx512_ifma, t->w_powers, n);
-
-  _ALLOCATE_U64_ARRAY(t->w_powers_con_r2_16_avx512_ifma, n * 3);
-  calc_w_con(t->w_powers_con_r2_16_avx512_ifma, t->w_powers_r2_16_avx512_ifma,
-             n * 3, q, AVX512_IFMA_WORD_SIZE);
+  allocate_aligned_array(&t->w_powers_con_r2_16_avx512_ifma, n * 3);
+  calc_w_con(t->w_powers_con_r2_16_avx512_ifma.ptr,
+             t->w_powers_r2_16_avx512_ifma.ptr, n * 3, q, AVX512_IFMA_WORD_SIZE);
 #endif
   return 1;
 }
@@ -260,48 +320,42 @@ static inline int init_test_cases(void)
   return 1;
 }
 
-#define FREE(p) \
-  do {          \
-    free((p));  \
-    (p) = NULL; \
-  } while(0)
-
 static inline void _destroy_test(test_case_t *t)
 {
   // for radix-2
-  FREE(t->w_powers);
-  FREE(t->w_powers_con);
-  FREE(t->w_inv_powers);
-  FREE(t->w_inv_powers_con);
+  free_aligned_array(&t->w_powers);
+  free_aligned_array(&t->w_powers_con);
+  free_aligned_array(&t->w_inv_powers);
+  free_aligned_array(&t->w_inv_powers_con);
 
   // for radix-4
-  FREE(t->w_powers_r4);
-  FREE(t->w_powers_con_r4);
-  FREE(t->w_inv_powers_r4);
-  FREE(t->w_inv_powers_con_r4);
+  free_aligned_array(&t->w_powers_r4);
+  free_aligned_array(&t->w_powers_con_r4);
+  free_aligned_array(&t->w_inv_powers_r4);
+  free_aligned_array(&t->w_inv_powers_con_r4);
 
 #ifdef S390X
   // for VMSL
-  FREE(t->w_powers_con_r4_vmsl);
-  FREE(t->w_inv_powers_con_r4_vmsl);
+  free_aligned_array(&t->w_powers_con_r4_vmsl);
+  free_aligned_array(&t->w_inv_powers_con_r4_vmsl);
 
 #endif
 #ifdef AVX512_IFMA_SUPPORT
   // for AVX512-IFMA
-  FREE(t->w_powers_hexl);
-  FREE(t->w_powers_con_hexl);
+  free_aligned_array(&t->w_powers_hexl);
+  free_aligned_array(&t->w_powers_con_hexl);
 
-  FREE(t->w_powers_r4_avx512_ifma);
-  FREE(t->w_powers_con_r4_avx512_ifma);
+  free_aligned_array(&t->w_powers_r4_avx512_ifma);
+  free_aligned_array(&t->w_powers_con_r4_avx512_ifma);
 
-  FREE(t->w_powers_r4_avx512_ifma_unordered);
-  FREE(t->w_powers_con_r4_avx512_ifma_unordered);
+  free_aligned_array(&t->w_powers_r4_avx512_ifma_unordered);
+  free_aligned_array(&t->w_powers_con_r4_avx512_ifma_unordered);
 
-  FREE(t->w_powers_r4r2_avx512_ifma);
-  FREE(t->w_powers_con_r4r2_avx512_ifma);
+  free_aligned_array(&t->w_powers_r4r2_avx512_ifma);
+  free_aligned_array(&t->w_powers_con_r4r2_avx512_ifma);
 
-  FREE(t->w_powers_r2_16_avx512_ifma);
-  FREE(t->w_powers_con_r2_16_avx512_ifma);
+  free_aligned_array(&t->w_powers_r2_16_avx512_ifma);
+  free_aligned_array(&t->w_powers_con_r2_16_avx512_ifma);
 #endif
 }
 

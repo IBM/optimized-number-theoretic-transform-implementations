@@ -28,7 +28,8 @@ typedef enum
 void report_test_fwd_perf_headers(void);
 void report_test_inv_perf_headers(void);
 
-void test_fwd_perf(const test_case_t *t);
+void test_aligned_fwd_perf(const test_case_t *t);
+void test_unaligned_fwd_perf(const test_case_t *t);
 void test_inv_perf(const test_case_t *t);
 
 void test_fwd_single_case(const test_case_t *t, func_num_t func_num);

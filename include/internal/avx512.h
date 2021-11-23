@@ -25,6 +25,7 @@ EXTERNC_BEGIN
 #define SETR(a, b, c, d, e, f, g, h) \
   _mm512_setr_epi64((a), (b), (c), (d), (e), (f), (g), (h))
 #define LOAD(mem)       _mm512_loadu_epi64((mem))
+#define LOADA(mem)      _mm512_load_epi64((mem))
 #define STORE(mem, reg) _mm512_storeu_epi64((mem), (reg))
 
 #define GATHER(idx, mem, scale) _mm512_i64gather_epi64((idx), (mem), (scale))

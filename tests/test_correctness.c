@@ -26,11 +26,11 @@ static inline int test_radix2_scalar(const test_case_t *t, uint64_t a_orig[])
   memcpy(a, a_orig, sizeof(a));
 
   printf("Running fwd_ntt_ref_harvey\n");
-  fwd_ntt_ref_harvey(a, t->n, t->q, t->w_powers, t->w_powers_con);
+  fwd_ntt_ref_harvey(a, t->n, t->q, t->w_powers.ptr, t->w_powers_con.ptr);
 
   printf("Running inv_ntt_ref_harvey\n");
-  inv_ntt_ref_harvey(a, t->n, t->q, t->n_inv, WORD_SIZE, t->w_inv_powers,
-                     t->w_inv_powers_con);
+  inv_ntt_ref_harvey(a, t->n, t->q, t->n_inv, WORD_SIZE, t->w_inv_powers.ptr,
+                     t->w_inv_powers_con.ptr);
 
   GUARD_MSG(memcmp(a_orig, a, sizeof(a)), "Bad results after radix-2 inv\n");
 
@@ -48,7 +48,7 @@ static inline int test_radix2_scalar_dbl(const test_case_t *t,
   memcpy(b, b_orig, sizeof(a));
 
   printf("Running fwd_ntt_ref_harvey_dbl\n");
-  fwd_ntt_ref_harvey_dbl(a, b, t->n, t->q, t->w_powers, t->w_powers_con);
+  fwd_ntt_ref_harvey_dbl(a, b, t->n, t->q, t->w_powers.ptr, t->w_powers_con.ptr);
 
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after radix-2 scalar double for a\n");
@@ -65,13 +65,13 @@ test_radix2_scalar_seal(const test_case_t *t, uint64_t a_orig[], uint64_t a_ntt[
   memcpy(a, a_orig, sizeof(a));
 
   printf("Running fwd_ntt_seal\n");
-  fwd_ntt_seal(a, t->n, t->q, t->w_powers, t->w_powers_con);
+  fwd_ntt_seal(a, t->n, t->q, t->w_powers.ptr, t->w_powers_con.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after radix-2 SEAL fwd implementation\n");
 
   printf("Running inv_ntt_seal\n");
-  inv_ntt_seal(a, t->n, t->q, t->n_inv.op, t->n_inv.con, t->w_inv_powers,
-               t->w_inv_powers_con);
+  inv_ntt_seal(a, t->n, t->q, t->n_inv.op, t->n_inv.con, t->w_inv_powers.ptr,
+               t->w_inv_powers_con.ptr);
   GUARD_MSG(memcmp(a_orig, a, sizeof(a)),
             "Bad results after radix-2 SEAL inv implementation\n");
 
@@ -85,12 +85,12 @@ test_radix4_scalar(const test_case_t *t, uint64_t a_orig[], uint64_t a_ntt[])
   memcpy(a, a_orig, sizeof(a));
 
   printf("Running fwd_ntt_radix4\n");
-  fwd_ntt_radix4(a, t->n, t->q, t->w_powers_r4, t->w_powers_con_r4);
+  fwd_ntt_radix4(a, t->n, t->q, t->w_powers_r4.ptr, t->w_powers_con_r4.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)), "Bad results after radix-4 fwd\n");
 
   printf("Running inv_ntt_radix4\n");
-  inv_ntt_radix4(a, t->n, t->q, t->n_inv, t->w_inv_powers_r4,
-                 t->w_inv_powers_con_r4);
+  inv_ntt_radix4(a, t->n, t->q, t->n_inv, t->w_inv_powers_r4.ptr,
+                 t->w_inv_powers_con_r4.ptr);
 
   GUARD_MSG(memcmp(a_orig, a, sizeof(a)), "Bad results after radix-4 inv\n");
 
@@ -104,15 +104,9 @@ test_radix4x4_scalar(const test_case_t *t, uint64_t a_orig[], uint64_t a_ntt[])
   memcpy(a, a_orig, sizeof(a));
 
   printf("Running fwd_ntt_radix4x4\n");
-  fwd_ntt_radix4x4(a, t->n, t->q, t->w_powers_r4, t->w_powers_con_r4);
+  fwd_ntt_radix4x4(a, t->n, t->q, t->w_powers_r4.ptr, t->w_powers_con_r4.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)), "Bad results after radix-4x4 fwd\n");
-  /*
-    printf("Running inv_ntt_radix4\n");
-    inv_ntt_radix4(a, t->n, t->q, t->n_inv, t->w_inv_powers_r4,
-                   t->w_inv_powers_con_r4);
 
-    GUARD_MSG(memcmp(a_orig, a, sizeof(a)), "Bad results after radix-4 inv\n");
-  */
   return SUCCESS;
 }
 
@@ -124,14 +118,14 @@ test_radix4_intrinsic(const test_case_t *t, uint64_t a_orig[], uint64_t a_ntt[])
   memcpy(a, a_orig, sizeof(a));
 
   printf("Running fwd_ntt_radix4_intrinsic\n");
-  fwd_ntt_radix4_intrinsic(a, t->n, t->q, t->w_powers_r4,
-                           t->w_powers_con_r4_vmsl);
+  fwd_ntt_radix4_intrinsic(a, t->n, t->q, t->w_powers_r4.ptr,
+                           t->w_powers_con_r4_vmsl.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after radix-4 with intrinsic fwd\n");
 
   printf("Running inv_ntt_radix4_intrinsic\n");
-  inv_ntt_radix4_intrinsic(a, t->n, t->q, t->n_inv_vmsl, t->w_inv_powers_r4,
-                           t->w_inv_powers_con_r4_vmsl);
+  inv_ntt_radix4_intrinsic(a, t->n, t->q, t->n_inv_vmsl, t->w_inv_powers_r4.ptr,
+                           t->w_inv_powers_con_r4_vmsl.ptr);
 
   GUARD_MSG(memcmp(a_orig, a, sizeof(a)),
             "Bad results after radix-4 inv with intrinsic\n");
@@ -150,8 +144,8 @@ static inline int test_radix4_intrinsic_dbl(const test_case_t *t,
   memcpy(b, b_orig, sizeof(a));
 
   printf("Running fwd_ntt_ref_harvey_dbl\n");
-  fwd_ntt_radix4_intrinsic_dbl(a, b, t->n, t->q, t->w_powers_r4,
-                               t->w_powers_con_r4_vmsl);
+  fwd_ntt_radix4_intrinsic_dbl(a, b, t->n, t->q, t->w_powers_r4.ptr,
+                               t->w_powers_con_r4_vmsl.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after radix-2 scalar double for a\n");
   GUARD_MSG(memcmp(a_ntt, b, sizeof(b)),
@@ -174,7 +168,8 @@ test_radix2_hexl(const test_case_t *t, uint64_t a_orig[], uint64_t a_ntt[])
   memcpy(a, a_orig, sizeof(a));
 
   printf("Running fwd_ntt_radix2_hexl\n");
-  fwd_ntt_radix2_hexl(a, t->n, t->q, t->w_powers_hexl, t->w_powers_con_hexl);
+  fwd_ntt_radix2_hexl(a, t->n, t->q, t->w_powers_hexl.ptr,
+                      t->w_powers_con_hexl.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after HEXL radix-2 with AVX512-IFMA intrinsic fwd\n");
 
@@ -225,16 +220,16 @@ test_radix4_avx512_ifma(const test_case_t *t, uint64_t a_orig[], uint64_t a_ntt[
   memcpy(a, a_orig, sizeof(a));
 
   printf("Running fwd_ntt_radix4_avx512_ifma\n");
-  fwd_ntt_radix4_avx512_ifma(a, t->n, t->q, t->w_powers_r4_avx512_ifma,
-                             t->w_powers_con_r4_avx512_ifma);
+  fwd_ntt_radix4_avx512_ifma(a, t->n, t->q, t->w_powers_r4_avx512_ifma.ptr,
+                             t->w_powers_con_r4_avx512_ifma.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after radix-4 with AVX512-IFMA intrinsic fwd\n");
 
   memcpy(a, a_orig, sizeof(a));
   printf("Running fwd_ntt_radix4_avx512_ifma_unordered\n");
-  fwd_ntt_radix4_avx512_ifma_unordered(a, t->n, t->q,
-                                       t->w_powers_r4_avx512_ifma_unordered,
-                                       t->w_powers_con_r4_avx512_ifma_unordered);
+  fwd_ntt_radix4_avx512_ifma_unordered(
+    a, t->n, t->q, t->w_powers_r4_avx512_ifma_unordered.ptr,
+    t->w_powers_con_r4_avx512_ifma_unordered.ptr);
   fix_a_order(a, t->n);
   GUARD_MSG(
     memcmp(a_ntt, a, sizeof(a)),
@@ -242,15 +237,15 @@ test_radix4_avx512_ifma(const test_case_t *t, uint64_t a_orig[], uint64_t a_ntt[
 
   memcpy(a, a_orig, sizeof(a));
   printf("Running fwd_ntt_r4r2_avx512_ifma\n");
-  fwd_ntt_r4r2_avx512_ifma(a, t->n, t->q, t->w_powers_r4r2_avx512_ifma,
-                           t->w_powers_con_r4r2_avx512_ifma);
+  fwd_ntt_r4r2_avx512_ifma(a, t->n, t->q, t->w_powers_r4r2_avx512_ifma.ptr,
+                           t->w_powers_con_r4r2_avx512_ifma.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after r4r2 with AVX512-IFMA intrinsic fwd\n");
 
   memcpy(a, a_orig, sizeof(a));
   printf("Running fwd_ntt_r2_16_avx512_ifma\n");
-  fwd_ntt_r2_16_avx512_ifma(a, t->n, t->q, t->w_powers_r2_16_avx512_ifma,
-                            t->w_powers_con_r2_16_avx512_ifma);
+  fwd_ntt_r2_16_avx512_ifma(a, t->n, t->q, t->w_powers_r2_16_avx512_ifma.ptr,
+                            t->w_powers_con_r2_16_avx512_ifma.ptr);
   GUARD_MSG(memcmp(a_ntt, a, sizeof(a)),
             "Bad results after r2_16 with AVX512-IFMA intrinsic fwd\n");
 
@@ -270,7 +265,7 @@ int test_correctness(const test_case_t *t)
   memcpy(b, a, sizeof(a));
 
   // Prepare a_ntt = NTT(a)
-  fwd_ntt_ref_harvey(a_cpy, t->n, t->q, t->w_powers, t->w_powers_con);
+  fwd_ntt_ref_harvey(a_cpy, t->n, t->q, t->w_powers.ptr, t->w_powers_con.ptr);
   memcpy(a_ntt, a_cpy, sizeof(a_cpy));
 
   GUARD(test_radix2_scalar(t, a));
